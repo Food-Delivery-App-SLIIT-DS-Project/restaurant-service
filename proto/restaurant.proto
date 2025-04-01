@@ -1,0 +1,39 @@
+syntax="proto3";
+package restaurant;
+
+service RestaurantService{
+    rpc CreateRestaurant(CreateRestaurantDto) returns (Restaurant){}
+    rpc FindAllRestaurants(Empty) returns (RestaurantList){}
+    rpc FindRestaurantById(FineOneRestaurantDto) returns (Restaurant){}
+    rpc UpdateRestaurant(UpdateRestaurantDto) returns (Restaurant){}
+    rpc DeleteRestaurant(FineOneRestaurantDto) returns (Restaurant){}
+}
+message Empty {}
+message RestaurantList{
+    repeated Restaurant restaurants = 1;
+}
+message FineOneRestaurantDto{
+    string id = 1;
+}
+message CreateRestaurantDto{
+    string id = 1;
+    string name = 2;
+    string address = 3;
+    string phone = 4;
+}
+message UpdateRestaurantDto{
+    string id = 1;
+    string name = 2;
+    string address = 3;
+    string phone = 4;
+}
+message Restaurant{
+    string id = 1;
+    string name = 2;
+    string address = 3;
+    string phone = 4;
+}
+message RestaurantStatus{
+    string id = 1;
+    string status = 2;
+}
