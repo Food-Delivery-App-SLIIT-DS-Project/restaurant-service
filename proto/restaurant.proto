@@ -1,39 +1,52 @@
-syntax="proto3";
+syntax = "proto3";
+
 package restaurant;
 
-service RestaurantService{
-    rpc CreateRestaurant(CreateRestaurantDto) returns (Restaurant){}
-    rpc FindAllRestaurants(Empty) returns (RestaurantList){}
-    rpc FindRestaurantById(FineOneRestaurantDto) returns (Restaurant){}
-    rpc UpdateRestaurant(UpdateRestaurantDto) returns (Restaurant){}
-    rpc DeleteRestaurant(FineOneRestaurantDto) returns (Restaurant){}
+service RestaurantService {
+  rpc CreateRestaurant (CreateRestaurantDto) returns (RestaurantResponse);
+  rpc FindRestaurantById (FindOneDto) returns (RestaurantResponse);
+  rpc FindAllRestaurants (Empty) returns (RestaurantList);
+  rpc UpdateRestaurant (UpdateRestaurantDto) returns (RestaurantResponse);
+  rpc DeleteRestaurant (FindOneDto) returns (DeleteResponse);
 }
+
 message Empty {}
-message RestaurantList{
-    repeated Restaurant restaurants = 1;
+
+message FindOneDto {
+  string id = 1;
 }
-message FineOneRestaurantDto{
-    string id = 1;
+
+message CreateRestaurantDto {
+  string userId = 1;
+  string restaurantName = 2;
+  string address = 3;
+  string openingHours = 4;
+  string cuisineType = 5;
 }
-message CreateRestaurantDto{
-    string id = 1;
-    string name = 2;
-    string address = 3;
-    string phone = 4;
+
+message UpdateRestaurantDto {
+  string id = 1;
+  string restaurantName = 2;
+  string address = 3;
+  string openingHours = 4;
+  string cuisineType = 5;
 }
-message UpdateRestaurantDto{
-    string id = 1;
-    string name = 2;
-    string address = 3;
-    string phone = 4;
+
+message RestaurantResponse {
+  string id = 1;
+  string userId = 2;
+  string restaurantName = 3;
+  string address = 4;
+  string openingHours = 5;
+  string cuisineType = 6;
+  string createdAt = 7;
+  string updatedAt = 8;
 }
-message Restaurant{
-    string id = 1;
-    string name = 2;
-    string address = 3;
-    string phone = 4;
+
+message RestaurantList {
+  repeated RestaurantResponse restaurants = 1;
 }
-message RestaurantStatus{
-    string id = 1;
-    string status = 2;
+
+message DeleteResponse {
+  bool success = 1;
 }
