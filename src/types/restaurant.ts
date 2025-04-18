@@ -5,13 +5,26 @@
 // source: proto/restaurant.proto
 
 /* eslint-disable */
-import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
-import { Observable } from "rxjs";
+import { GrpcMethod, GrpcStreamMethod } from '@nestjs/microservices';
+import { Observable } from 'rxjs';
 
-export const protobufPackage = "restaurant";
+export const protobufPackage = 'restaurant';
 
-export interface Empty {
+export interface OrderAcceptedDto {
+  orderId: string;
+  restaurantId: string;
+  location: {
+    lat: string;
+    lng: string;
+  };
 }
+
+export interface OrderAcceptedResponse {
+  /** e.g., "true", "false" */
+  status: boolean;
+}
+
+export interface Empty {}
 
 export interface FindOneDto {
   id: string;
@@ -40,8 +53,8 @@ export interface RestaurantResponse {
   address: string;
   openingHours: string;
   cuisineType: string;
-  createdAt?: Date; // Add createdAt field
-  updatedAt?: Date; // Add updatedAt field
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface RestaurantList {
@@ -52,57 +65,100 @@ export interface DeleteResponse {
   success: boolean;
 }
 
-export const RESTAURANT_PACKAGE_NAME = "restaurant";
+export const RESTAURANT_PACKAGE_NAME = 'restaurant';
 
 export interface RestaurantServiceClient {
-  createRestaurant(request: CreateRestaurantDto): Observable<RestaurantResponse>;
+  createRestaurant(
+    request: CreateRestaurantDto,
+  ): Observable<RestaurantResponse>;
 
   findRestaurantById(request: FindOneDto): Observable<RestaurantResponse>;
 
   findAllRestaurants(request: Empty): Observable<RestaurantList>;
 
-  updateRestaurant(request: UpdateRestaurantDto): Observable<RestaurantResponse>;
+  updateRestaurant(
+    request: UpdateRestaurantDto,
+  ): Observable<RestaurantResponse>;
 
   deleteRestaurant(request: FindOneDto): Observable<DeleteResponse>;
+
+  restaurantAcceptOrder(
+    request: OrderAcceptedDto,
+  ): Observable<OrderAcceptedResponse>;
 }
 
 export interface RestaurantServiceController {
   createRestaurant(
     request: CreateRestaurantDto,
-  ): Promise<RestaurantResponse> | Observable<RestaurantResponse> | RestaurantResponse;
+  ):
+    | Promise<RestaurantResponse>
+    | Observable<RestaurantResponse>
+    | RestaurantResponse;
 
   findRestaurantById(
     request: FindOneDto,
-  ): Promise<RestaurantResponse> | Observable<RestaurantResponse> | RestaurantResponse;
+  ):
+    | Promise<RestaurantResponse>
+    | Observable<RestaurantResponse>
+    | RestaurantResponse;
 
-  findAllRestaurants(request: Empty): Promise<RestaurantList> | Observable<RestaurantList> | RestaurantList;
+  findAllRestaurants(
+    request: Empty,
+  ): Promise<RestaurantList> | Observable<RestaurantList> | RestaurantList;
 
   updateRestaurant(
     request: UpdateRestaurantDto,
-  ): Promise<RestaurantResponse> | Observable<RestaurantResponse> | RestaurantResponse;
+  ):
+    | Promise<RestaurantResponse>
+    | Observable<RestaurantResponse>
+    | RestaurantResponse;
 
-  deleteRestaurant(request: FindOneDto): Promise<DeleteResponse> | Observable<DeleteResponse> | DeleteResponse;
+  deleteRestaurant(
+    request: FindOneDto,
+  ): Promise<DeleteResponse> | Observable<DeleteResponse> | DeleteResponse;
+
+  restaurantAcceptOrder(
+    request: OrderAcceptedDto,
+  ):
+    | Promise<OrderAcceptedResponse>
+    | Observable<OrderAcceptedResponse>
+    | OrderAcceptedResponse;
 }
 
 export function RestaurantServiceControllerMethods() {
   return function (constructor: Function) {
     const grpcMethods: string[] = [
-      "createRestaurant",
-      "findRestaurantById",
-      "findAllRestaurants",
-      "updateRestaurant",
-      "deleteRestaurant",
+      'createRestaurant',
+      'findRestaurantById',
+      'findAllRestaurants',
+      'updateRestaurant',
+      'deleteRestaurant',
+      'restaurantAcceptOrder',
     ];
     for (const method of grpcMethods) {
-      const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
-      GrpcMethod("RestaurantService", method)(constructor.prototype[method], method, descriptor);
+      const descriptor: any = Reflect.getOwnPropertyDescriptor(
+        constructor.prototype,
+        method,
+      );
+      GrpcMethod('RestaurantService', method)(
+        constructor.prototype[method],
+        method,
+        descriptor,
+      );
     }
     const grpcStreamMethods: string[] = [];
     for (const method of grpcStreamMethods) {
-      const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
-      GrpcStreamMethod("RestaurantService", method)(constructor.prototype[method], method, descriptor);
+      const descriptor: any = Reflect.getOwnPropertyDescriptor(
+        constructor.prototype,
+        method,
+      );
+      GrpcStreamMethod('RestaurantService', method)(
+        constructor.prototype[method],
+        method,
+        descriptor,
+      );
     }
   };
 }
 
-export const RESTAURANT_SERVICE_NAME = "RestaurantService";
+export const RESTAURANT_SERVICE_NAME = 'RestaurantService';

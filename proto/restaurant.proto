@@ -8,6 +8,20 @@ service RestaurantService {
   rpc FindAllRestaurants (Empty) returns (RestaurantList);
   rpc UpdateRestaurant (UpdateRestaurantDto) returns (RestaurantResponse);
   rpc DeleteRestaurant (FindOneDto) returns (DeleteResponse);
+  rpc restaurantAcceptOrder(OrderAcceptedDto) returns (OrderAcceptedResponse);
+}
+
+message OrderAcceptedDto {
+  string orderId = 1;
+  string restaurantId = 2;
+  Location location = 3;
+}
+message Location {
+  string lat = 1;
+  string lng = 2;
+}
+message OrderAcceptedResponse {
+  bool status = 4; // e.g., "true", "false"
 }
 
 message Empty {}

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable prettier/prettier */
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -10,17 +10,29 @@ import {
   CreateRestaurantDto,
   DeleteResponse,
   FindOneDto,
+  OrderAcceptedResponse,
   RestaurantList,
   RestaurantResponse,
   UpdateRestaurantDto,
 } from 'src/types';
+import { ClientKafka } from '@nestjs/microservices';
 
 @Injectable()
 export class RestaurantService {
   constructor(
     @InjectModel(Restaurant.name)
     private restaurantModel: Model<RestaurantDocument>,
+    @Inject('KAFKA_SERVICE') private readonly kafkaClient: ClientKafka,
   ) {}
+  async onModuleInit() {
+    await this.kafkaClient.connect();
+  }
+  // kafka function --- restaurant accept order  event producer-------------
+  restaurantAcceptOrder(data: any): OrderAcceptedResponse {
+    console.log('Restaurant Accept Order', data);
+    this.kafkaClient.emit('ORDER_ACCEPTED', data);
+    return { status: true };
+  }
 
   async create(
     createRestaurantDto: CreateRestaurantDto,
@@ -105,7 +117,7 @@ export class RestaurantService {
     const result = await this.restaurantModel.findOneAndDelete({
       restaurantId: data.id,
     });
-  
+
     if (!result) throw new NotFoundException('Restaurant not found');
     return { success: true };
   }

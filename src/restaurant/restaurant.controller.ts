@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { Controller } from '@nestjs/common';
@@ -7,6 +8,8 @@ import {
   DeleteResponse,
   Empty,
   FindOneDto,
+  OrderAcceptedDto,
+  OrderAcceptedResponse,
   RestaurantList,
   RestaurantResponse,
   RestaurantServiceController,
@@ -18,6 +21,11 @@ import { from, Observable } from 'rxjs';
 @Controller()
 export class RestaurantController implements RestaurantServiceController {
   constructor(private readonly restaurantService: RestaurantService) {}
+
+  restaurantAcceptOrder(request: OrderAcceptedDto): OrderAcceptedResponse{
+    console.log('restaurantAcceptOrder', request);
+    return this.restaurantService.restaurantAcceptOrder(request);
+  }
 
   createRestaurant(request: CreateRestaurantDto): Promise<RestaurantResponse> {
     console.log('createRestaurant', request);
