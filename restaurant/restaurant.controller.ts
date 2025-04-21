@@ -8,37 +8,50 @@ import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
 export class RestaurantController {
   constructor(private readonly restaurantService: RestaurantService) {}
 
+  // gRPC method to create a new restaurant
   @GrpcMethod('RestaurantService', 'CreateRestaurant')
   async createRestaurant(data: CreateRestaurantDto) {
     const restaurant = await this.restaurantService.create(data);
+    console.log('Created restaurant:', restaurant);
     return { restaurant };
   }
 
+  // gRPC method to fetch a single restaurant by restaurantId
   @GrpcMethod('RestaurantService', 'GetRestaurant')
-  async getRestaurant({ id }: { id: string }) {
-    const restaurant = await this.restaurantService.findOne(id);
+  async getRestaurant({ restaurantId }: { restaurantId: string }) {
+    const restaurant = await this.restaurantService.findOne(restaurantId);
+    console.log('Fetched restaurant:', restaurant);
     return restaurant ? { restaurant } : null;
   }
 
+  // gRPC method to fetch all restaurants
   @GrpcMethod('RestaurantService', 'GetAllRestaurants')
   async getAllRestaurants() {
     const restaurants = await this.restaurantService.findAll();
+    console.log('Fetched all restaurants:', restaurants);
     return { restaurants };
   }
 
+  // gRPC method to update a restaurant by restaurantId
   @GrpcMethod('RestaurantService', 'UpdateRestaurant')
-  async updateRestaurant(data: UpdateRestaurantDto & { id: string }) {
-    const updated = await this.restaurantService.update(data.id, data);
+  async updateRestaurant(data: UpdateRestaurantDto & { restaurantId: string }) {
+    const updated = await this.restaurantService.update(
+      data.restaurantId,
+      data,
+    );
+    console.log('Updated restaurant:', updated);
     return updated ? { restaurant: updated } : null;
   }
 
+  // gRPC method to delete a restaurant by restaurantId
   @GrpcMethod('RestaurantService', 'DeleteRestaurant')
-  async deleteRestaurant({ id }: { id: string }) {
-    await this.restaurantService.delete(id);
-    return {};
+  async deleteRestaurant({ restaurantId }: { restaurantId: string }) {
+    await this.restaurantService.delete(restaurantId);
+    console.log('Deleted restaurant with ID:', restaurantId);
+    return { message: 'Restaurant deleted successfully' };
   }
 
-  // NEW: Find by name
+  // gRPC method to get a restaurant by its name
   @GrpcMethod('RestaurantService', 'GetRestaurantByName')
   async getRestaurantByName({ name }: { name: string }) {
     const restaurant = await this.restaurantService.findByName(name);
@@ -46,7 +59,7 @@ export class RestaurantController {
     return restaurant ? { restaurant } : null;
   }
 
-  // NEW: Find by cuisine
+  // gRPC method to get restaurants by their cuisine type
   @GrpcMethod('RestaurantService', 'GetRestaurantsByCuisine')
   async getRestaurantsByCuisine({ cuisine }: { cuisine: string }) {
     const restaurants = await this.restaurantService.findByCuisine(cuisine);
@@ -54,21 +67,22 @@ export class RestaurantController {
     return { restaurants };
   }
 
-  // NEW: Find by user ID
+  // gRPC method to get restaurants created by a specific user
   @GrpcMethod('RestaurantService', 'GetRestaurantsByUserId')
   async getRestaurantsByUserId({ userId }: { userId: string }) {
     const restaurants = await this.restaurantService.findByUserId(userId);
+    console.log('Restaurants by user ID:', restaurants);
     return { restaurants };
   }
 
-  // NEW: Find by rating
+  // gRPC method to get restaurants filtered by rating
   @GrpcMethod('RestaurantService', 'GetRestaurantsByRating')
   async getRestaurantsByRating({ rating }: { rating: number }) {
     const restaurants = await this.restaurantService.findByRating(rating);
     return { restaurants };
   }
 
-  // NEW: Find by geolocation
+  // gRPC method to get restaurants within a given geographic radius
   @GrpcMethod('RestaurantService', 'GetRestaurantsByLocation')
   async getRestaurantsByLocation({
     latitude,
@@ -84,6 +98,7 @@ export class RestaurantController {
       longitude,
       radius,
     );
+    console.log('Restaurants by location:', restaurants);
     return { restaurants };
   }
 }

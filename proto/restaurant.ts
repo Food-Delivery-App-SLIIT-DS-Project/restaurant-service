@@ -13,8 +13,8 @@ import { Timestamp } from "../google/protobuf/timestamp";
 export const protobufPackage = "restaurant";
 
 /** Common Messages */
-export interface Id {
-  id: string;
+export interface RestaurantId {
+  restaurantId: string;
 }
 
 export interface NameRequest {
@@ -47,7 +47,7 @@ export interface LocationRequest {
 
 /** Restaurant Data */
 export interface Restaurant {
-  id: string;
+  restaurantId: string;
   userId: string;
   name: string;
   address: string;
@@ -77,7 +77,7 @@ export interface CreateRestaurantRequest {
 }
 
 export interface UpdateRestaurantRequest {
-  id: string;
+  restaurantId: string;
   name: string;
   address: string;
   location: Coordinates | undefined;
@@ -99,15 +99,15 @@ export const RESTAURANT_PACKAGE_NAME = "restaurant";
 export interface RestaurantServiceClient {
   createRestaurant(request: CreateRestaurantRequest): Observable<Restaurant>;
 
-  getRestaurant(request: Id): Observable<Restaurant>;
+  getRestaurant(request: RestaurantId): Observable<Restaurant>;
 
   getAllRestaurants(request: Empty): Observable<RestaurantList>;
 
   updateRestaurant(request: UpdateRestaurantRequest): Observable<Restaurant>;
 
-  deleteRestaurant(request: Id): Observable<Empty>;
+  deleteRestaurant(request: RestaurantId): Observable<Empty>;
 
-  /** New RPC methods */
+  /** additional rpc */
 
   getRestaurantByName(request: NameRequest): Observable<Restaurant>;
 
@@ -123,15 +123,15 @@ export interface RestaurantServiceClient {
 export interface RestaurantServiceController {
   createRestaurant(request: CreateRestaurantRequest): Promise<Restaurant> | Observable<Restaurant> | Restaurant;
 
-  getRestaurant(request: Id): Promise<Restaurant> | Observable<Restaurant> | Restaurant;
+  getRestaurant(request: RestaurantId): Promise<Restaurant> | Observable<Restaurant> | Restaurant;
 
   getAllRestaurants(request: Empty): Promise<RestaurantList> | Observable<RestaurantList> | RestaurantList;
 
   updateRestaurant(request: UpdateRestaurantRequest): Promise<Restaurant> | Observable<Restaurant> | Restaurant;
 
-  deleteRestaurant(request: Id): void;
+  deleteRestaurant(request: RestaurantId): void;
 
-  /** New RPC methods */
+  /** additional rpc */
 
   getRestaurantByName(request: NameRequest): Promise<Restaurant> | Observable<Restaurant> | Restaurant;
 

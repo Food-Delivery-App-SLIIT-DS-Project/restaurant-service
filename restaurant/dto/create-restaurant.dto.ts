@@ -20,6 +20,9 @@ export class CreateRestaurantDto {
   userId: string;
 
   @IsString()
+  restaurantId: string;
+
+  @IsString()
   name: string;
 
   @IsString()

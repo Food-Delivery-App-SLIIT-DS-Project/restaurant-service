@@ -7,10 +7,10 @@ import "google/protobuf/timestamp.proto";
 
 service RestaurantService {
   rpc CreateRestaurant(CreateRestaurantRequest) returns (Restaurant);
-  rpc GetRestaurant(Id) returns (Restaurant);
+  rpc GetRestaurant(RestaurantId) returns (Restaurant);
   rpc GetAllRestaurants(google.protobuf.Empty) returns (RestaurantList);
   rpc UpdateRestaurant(UpdateRestaurantRequest) returns (Restaurant);
-  rpc DeleteRestaurant(Id) returns (google.protobuf.Empty);
+  rpc DeleteRestaurant(RestaurantId) returns (google.protobuf.Empty);
 
   // additional rpc
   rpc GetRestaurantByName(NameRequest) returns (Restaurant);
@@ -21,8 +21,8 @@ service RestaurantService {
 }
 
 // Common Messages
-message Id {
-  string id = 1;
+message RestaurantId {
+  string restaurantId = 1;
 }
 
 message NameRequest {
@@ -54,7 +54,7 @@ message LocationRequest {
 
 // Restaurant Data
 message Restaurant {
-  string id = 1;
+  string restaurantId = 1;
   string userId = 2;
   string name = 3;
   string address = 4;
@@ -84,7 +84,7 @@ message CreateRestaurantRequest {
 }
 
 message UpdateRestaurantRequest {
-  string id = 1;
+  string restaurantId = 1;
   string name = 2;
   string address = 3;
   Coordinates location = 4;

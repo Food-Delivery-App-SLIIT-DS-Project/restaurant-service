@@ -19,6 +19,9 @@ export class Restaurant {
   @Prop({ required: true }) //user who created it
   userId: string;
 
+  @Prop({ required: true, unique: true }) //restaurant ID
+  restaurantId: string;
+
   @Prop({ required: true })
   name: string;
 
