@@ -12,8 +12,25 @@ import { Timestamp } from "../google/protobuf/timestamp";
 
 export const protobufPackage = "restaurant";
 
+/** Common Messages */
 export interface Id {
   id: string;
+}
+
+export interface NameRequest {
+  name: string;
+}
+
+export interface CuisineRequest {
+  cuisine: string;
+}
+
+export interface UserIdRequest {
+  userId: string;
+}
+
+export interface RatingRequest {
+  rating: number;
 }
 
 export interface Coordinates {
@@ -21,6 +38,14 @@ export interface Coordinates {
   latitude: number;
 }
 
+export interface LocationRequest {
+  latitude: number;
+  longitude: number;
+  /** in kilometers */
+  radius: number;
+}
+
+/** Restaurant Data */
 export interface Restaurant {
   id: string;
   userId: string;
@@ -81,6 +106,18 @@ export interface RestaurantServiceClient {
   updateRestaurant(request: UpdateRestaurantRequest): Observable<Restaurant>;
 
   deleteRestaurant(request: Id): Observable<Empty>;
+
+  /** New RPC methods */
+
+  getRestaurantByName(request: NameRequest): Observable<Restaurant>;
+
+  getRestaurantsByCuisine(request: CuisineRequest): Observable<RestaurantList>;
+
+  getRestaurantsByUserId(request: UserIdRequest): Observable<RestaurantList>;
+
+  getRestaurantsByRating(request: RatingRequest): Observable<RestaurantList>;
+
+  getRestaurantsByLocation(request: LocationRequest): Observable<RestaurantList>;
 }
 
 export interface RestaurantServiceController {
@@ -93,6 +130,22 @@ export interface RestaurantServiceController {
   updateRestaurant(request: UpdateRestaurantRequest): Promise<Restaurant> | Observable<Restaurant> | Restaurant;
 
   deleteRestaurant(request: Id): void;
+
+  /** New RPC methods */
+
+  getRestaurantByName(request: NameRequest): Promise<Restaurant> | Observable<Restaurant> | Restaurant;
+
+  getRestaurantsByCuisine(
+    request: CuisineRequest,
+  ): Promise<RestaurantList> | Observable<RestaurantList> | RestaurantList;
+
+  getRestaurantsByUserId(request: UserIdRequest): Promise<RestaurantList> | Observable<RestaurantList> | RestaurantList;
+
+  getRestaurantsByRating(request: RatingRequest): Promise<RestaurantList> | Observable<RestaurantList> | RestaurantList;
+
+  getRestaurantsByLocation(
+    request: LocationRequest,
+  ): Promise<RestaurantList> | Observable<RestaurantList> | RestaurantList;
 }
 
 export function RestaurantServiceControllerMethods() {
@@ -103,6 +156,11 @@ export function RestaurantServiceControllerMethods() {
       "getAllRestaurants",
       "updateRestaurant",
       "deleteRestaurant",
+      "getRestaurantByName",
+      "getRestaurantsByCuisine",
+      "getRestaurantsByUserId",
+      "getRestaurantsByRating",
+      "getRestaurantsByLocation",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

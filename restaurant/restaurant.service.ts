@@ -41,4 +41,40 @@ export class RestaurantService {
   async delete(id: string): Promise<void> {
     await this.restaurantModel.findByIdAndDelete(id).exec();
   }
+  // Find a restaurant by name
+  async findByName(name: string): Promise<Restaurant | null> {
+    return this.restaurantModel.findOne({ name }).lean().exec();
+  }
+  // Find a restaurant by location radius 5km
+  async findByLocation(
+    latitude: number,
+    longitude: number,
+    radius: number,
+  ): Promise<Restaurant[]> {
+    return this.restaurantModel
+      .find({
+        location: {
+          $geoWithin: {
+            $centerSphere: [
+              [longitude, latitude],
+              radius / 3963.2, // Convert radius from kilometers to radians
+            ],
+          },
+        },
+      })
+      .lean()
+      .exec();
+  }
+  // Find a restaurant by cuisine
+  async findByCuisine(cuisine: string): Promise<Restaurant[]> {
+    return this.restaurantModel.find({ cuisine }).lean().exec();
+  }
+  // Find a restaurant by userID
+  async findByUserId(userId: string): Promise<Restaurant[]> {
+    return this.restaurantModel.find({ userId }).lean().exec();
+  }
+  // Find a restaurant by rating
+  async findByRating(rating: number): Promise<Restaurant[]> {
+    return this.restaurantModel.find({ rating }).lean().exec();
+  }
 }

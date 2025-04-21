@@ -11,10 +11,34 @@ service RestaurantService {
   rpc GetAllRestaurants(google.protobuf.Empty) returns (RestaurantList);
   rpc UpdateRestaurant(UpdateRestaurantRequest) returns (Restaurant);
   rpc DeleteRestaurant(Id) returns (google.protobuf.Empty);
+
+  // additional rpc
+  rpc GetRestaurantByName(NameRequest) returns (Restaurant);
+  rpc GetRestaurantsByCuisine(CuisineRequest) returns (RestaurantList);
+  rpc GetRestaurantsByUserId(UserIdRequest) returns (RestaurantList);
+  rpc GetRestaurantsByRating(RatingRequest) returns (RestaurantList);
+  rpc GetRestaurantsByLocation(LocationRequest) returns (RestaurantList);
 }
 
+// Common Messages
 message Id {
   string id = 1;
+}
+
+message NameRequest {
+  string name = 1;
+}
+
+message CuisineRequest {
+  string cuisine = 1;
+}
+
+message UserIdRequest {
+  string userId = 1;
+}
+
+message RatingRequest {
+  int32 rating = 1;
 }
 
 message Coordinates {
@@ -22,6 +46,13 @@ message Coordinates {
   double latitude = 2;
 }
 
+message LocationRequest {
+  double latitude = 1;
+  double longitude = 2;
+  double radius = 3; // in kilometers
+}
+
+// Restaurant Data
 message Restaurant {
   string id = 1;
   string userId = 2;
