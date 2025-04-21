@@ -1,5 +1,5 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { GrpcMethod } from '@nestjs/microservices';
 import { RestaurantService } from './restaurant.service';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
@@ -8,28 +8,44 @@ import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
 export class RestaurantController {
   constructor(private readonly restaurantService: RestaurantService) {}
 
-  @MessagePattern('createRestaurant')
-  create(@Payload() createRestaurantDto: CreateRestaurantDto) {
-    return this.restaurantService.create(createRestaurantDto);
+  // rpc CreateRestaurant(CreateRestaurantRequest) returns (Restaurant);
+  @GrpcMethod('RestaurantService', 'CreateRestaurant')
+  async createRestaurant(data: CreateRestaurantDto) {
+    const restaurant = await this.restaurantService.create(data);
+    return { restaurant };
   }
 
-  @MessagePattern('findAllRestaurant')
-  findAll() {
-    return this.restaurantService.findAll();
+  // rpc GetRestaurant(Id) returns (Restaurant);
+  @GrpcMethod('RestaurantService', 'GetRestaurant')
+  async getRestaurant({ id }: { id: string }) {
+    console.log('Fetching restaurant with id:', id);
+    const restaurant = await this.restaurantService.findOne(id);
+    console.log('Fetched restaurant:', restaurant);
+    if (!restaurant) return null;
+    return { restaurant };
+  }
+  // rpc GetAllRestaurants(google.protobuf.Empty) returns (RestaurantList);
+  @GrpcMethod('RestaurantService', 'GetAllRestaurants')
+  async getAllRestaurants() {
+    const restaurants = await this.restaurantService.findAll();
+    console.log('Fetched all restaurants:', restaurants);
+    return { restaurants };
   }
 
-  @MessagePattern('findOneRestaurant')
-  findOne(@Payload() id: number) {
-    return this.restaurantService.findOne(id);
+  // rpc UpdateRestaurant(UpdateRestaurantRequest) returns (Restaurant);
+  @GrpcMethod('RestaurantService', 'UpdateRestaurant')
+  async updateRestaurant(data: UpdateRestaurantDto & { id: string }) {
+    const updated = await this.restaurantService.update(data.id, data);
+    if (!updated) return null;
+    console.log('Updated restaurant:', updated);
+    return { restaurant: updated };
   }
 
-  @MessagePattern('updateRestaurant')
-  update(@Payload() updateRestaurantDto: UpdateRestaurantDto) {
-    return this.restaurantService.update(updateRestaurantDto.id, updateRestaurantDto);
-  }
-
-  @MessagePattern('removeRestaurant')
-  remove(@Payload() id: number) {
-    return this.restaurantService.remove(id);
+  // rpc DeleteRestaurant(Id) returns (google.protobuf.Empty);
+  @GrpcMethod('RestaurantService', 'DeleteRestaurant')
+  async deleteRestaurant({ id }: { id: string }) {
+    await this.restaurantService.delete(id);
+    console.log('Restaurant deleted with id:', id);
+    return {}; // empty message
   }
 }

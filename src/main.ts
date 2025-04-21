@@ -9,9 +9,9 @@ async function bootstrap() {
     {
       transport: Transport.GRPC,
       options: {
-        protoPath: join(__dirname, '../restaurant.proto'),
+        protoPath: join(__dirname, '../restaurant.proto'), // Path to your proto file
         package: 'restaurant',
-        url: 'localhost:50057',
+        url: 'localhost:50057', // gRPC server URL
       },
     },
   );

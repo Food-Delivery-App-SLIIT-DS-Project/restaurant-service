@@ -1,0 +1,59 @@
+syntax = "proto3";
+
+package menue;
+
+import "google/protobuf/empty.proto";
+
+// The Menue service definition
+service MenueService {
+  rpc CreateMenue(CreateMenueRequest) returns (Menue);
+  rpc GetMenue(Id) returns (Menue);
+  rpc GetAllMenues(google.protobuf.Empty) returns (MenueList);
+  rpc UpdateMenue(UpdateMenueRequest) returns (Menue);
+  rpc DeleteMenue(Id) returns (google.protobuf.Empty);
+}
+
+// Menue entity
+message Menue {
+  string id = 1;
+  string foodName = 2;
+  string restaurantID = 3;
+  string description = 4;
+  string imageReference = 5;
+  double price = 6;
+  string category = 7;
+  bool isAvailable = 8;
+}
+
+// Request to create a new menue
+message CreateMenueRequest {
+  string foodName = 1;
+  string restaurantID = 2;
+  string description = 3;
+  string imageReference = 4;
+  double price = 5;
+  string category = 6;
+  bool isAvailable = 7;
+}
+
+// Request to update an existing menue
+message UpdateMenueRequest {
+  string id = 1;
+  string foodName = 2;
+  string restaurantID = 3;
+  string description = 4;
+  string imageReference = 5;
+  double price = 6;
+  string category = 7;
+  bool isAvailable = 8;
+}
+
+// ID wrapper
+message Id {
+  string id = 1;
+}
+
+// List of menues
+message MenueList {
+  repeated Menue items = 1;
+}
