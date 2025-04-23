@@ -1,59 +1,70 @@
 syntax = "proto3";
 
-package menue;
+package menu;
 
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
-// The Menue service definition
-service MenueService {
-  rpc CreateMenue(CreateMenueRequest) returns (Menue);
-  rpc GetMenue(Id) returns (Menue);
-  rpc GetAllMenues(google.protobuf.Empty) returns (MenueList);
-  rpc UpdateMenue(UpdateMenueRequest) returns (Menue);
-  rpc DeleteMenue(Id) returns (google.protobuf.Empty);
+service MenuService {
+  rpc CreateMenu(CreateMenuRequest) returns (Menu);
+  rpc GetMenuById(Id) returns (Menu);
+  rpc GetMenusByRestaurantId(RestaurantIdRequest) returns (MenuList);
+  rpc GetMenusByName(NameRequest) returns (MenuList);
+  rpc UpdateMenu(UpdateMenuRequest) returns (Menu);
+  rpc UpdateMenuStatus(UpdateMenuStatusRequest) returns (Menu);
+  rpc DeleteMenu(Id) returns (google.protobuf.Empty);
+  rpc GetAllMenus(google.protobuf.Empty) returns (MenuList);
+  rpc GetAllValidMenus(google.protobuf.Empty) returns (MenuList);
 }
 
-// Menue entity
-message Menue {
+message UpdateMenuStatusRequest {
   string id = 1;
-  string foodName = 2;
-  string restaurantID = 3;
-  string description = 4;
-  string imageReference = 5;
-  double price = 6;
-  string category = 7;
-  bool isAvailable = 8;
+  bool available = 2;
 }
 
-// Request to create a new menue
-message CreateMenueRequest {
-  string foodName = 1;
-  string restaurantID = 2;
-  string description = 3;
-  string imageReference = 4;
-  double price = 5;
-  string category = 6;
-  bool isAvailable = 7;
-}
-
-// Request to update an existing menue
-message UpdateMenueRequest {
-  string id = 1;
-  string foodName = 2;
-  string restaurantID = 3;
-  string description = 4;
-  string imageReference = 5;
-  double price = 6;
-  string category = 7;
-  bool isAvailable = 8;
-}
-
-// ID wrapper
 message Id {
   string id = 1;
 }
 
-// List of menues
-message MenueList {
-  repeated Menue items = 1;
+message RestaurantIdRequest {
+  string restaurantId = 1;
+}
+
+message NameRequest {
+  string name = 1;
+}
+
+message Menu {
+  string id = 1;
+  string menuId = 2;
+  string restaurantId = 3;
+  string name = 4;
+  string description = 5;
+  double price = 6;
+  string imageUrl = 7;
+  bool available = 8;
+  google.protobuf.Timestamp createdAt = 9;
+  google.protobuf.Timestamp updatedAt = 10;
+}
+
+message CreateMenuRequest {
+  string restaurantId = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  string imageUrl = 5;
+  bool available = 6;
+}
+
+message UpdateMenuRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  string imageUrl = 5;
+  bool available = 6;
+}
+
+message MenuList {
+  repeated Menu menus = 1;
 }

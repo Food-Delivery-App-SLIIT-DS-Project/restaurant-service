@@ -17,6 +17,10 @@ export interface RestaurantId {
   restaurantId: string;
 }
 
+export interface RestaurantResponse {
+  restaurant: Restaurant | undefined;
+}
+
 export interface NameRequest {
   name: string;
 }
@@ -94,6 +98,16 @@ export interface RestaurantList {
   restaurants: Restaurant[];
 }
 
+export interface UpdateIsVerifiedRequest {
+  restaurantId: string;
+  isVerified: boolean;
+}
+
+export interface UpdateIsOpenRequest {
+  restaurantId: string;
+  isOpen: boolean;
+}
+
 export const RESTAURANT_PACKAGE_NAME = "restaurant";
 
 export interface RestaurantServiceClient {
@@ -107,17 +121,21 @@ export interface RestaurantServiceClient {
 
   deleteRestaurant(request: RestaurantId): Observable<Empty>;
 
-  /** additional rpc */
-
   getRestaurantByName(request: NameRequest): Observable<Restaurant>;
 
   getRestaurantsByCuisine(request: CuisineRequest): Observable<RestaurantList>;
 
   getRestaurantsByUserId(request: UserIdRequest): Observable<RestaurantList>;
 
+  updateIsVerified(request: UpdateIsVerifiedRequest): Observable<RestaurantResponse>;
+
+  updateIsOpen(request: UpdateIsOpenRequest): Observable<RestaurantResponse>;
+
   getRestaurantsByRating(request: RatingRequest): Observable<RestaurantList>;
 
   getRestaurantsByLocation(request: LocationRequest): Observable<RestaurantList>;
+
+  getAllRestaurantsWithFilters(request: Empty): Observable<RestaurantList>;
 }
 
 export interface RestaurantServiceController {
@@ -131,8 +149,6 @@ export interface RestaurantServiceController {
 
   deleteRestaurant(request: RestaurantId): void;
 
-  /** additional rpc */
-
   getRestaurantByName(request: NameRequest): Promise<Restaurant> | Observable<Restaurant> | Restaurant;
 
   getRestaurantsByCuisine(
@@ -141,11 +157,21 @@ export interface RestaurantServiceController {
 
   getRestaurantsByUserId(request: UserIdRequest): Promise<RestaurantList> | Observable<RestaurantList> | RestaurantList;
 
+  updateIsVerified(
+    request: UpdateIsVerifiedRequest,
+  ): Promise<RestaurantResponse> | Observable<RestaurantResponse> | RestaurantResponse;
+
+  updateIsOpen(
+    request: UpdateIsOpenRequest,
+  ): Promise<RestaurantResponse> | Observable<RestaurantResponse> | RestaurantResponse;
+
   getRestaurantsByRating(request: RatingRequest): Promise<RestaurantList> | Observable<RestaurantList> | RestaurantList;
 
   getRestaurantsByLocation(
     request: LocationRequest,
   ): Promise<RestaurantList> | Observable<RestaurantList> | RestaurantList;
+
+  getAllRestaurantsWithFilters(request: Empty): Promise<RestaurantList> | Observable<RestaurantList> | RestaurantList;
 }
 
 export function RestaurantServiceControllerMethods() {
@@ -159,8 +185,11 @@ export function RestaurantServiceControllerMethods() {
       "getRestaurantByName",
       "getRestaurantsByCuisine",
       "getRestaurantsByUserId",
+      "updateIsVerified",
+      "updateIsOpen",
       "getRestaurantsByRating",
       "getRestaurantsByLocation",
+      "getAllRestaurantsWithFilters",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

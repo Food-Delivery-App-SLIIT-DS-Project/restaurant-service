@@ -8,97 +8,127 @@
 import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
 import { Observable } from "rxjs";
 import { Empty } from "../google/protobuf/empty";
+import { Timestamp } from "../google/protobuf/timestamp";
 
-export const protobufPackage = "menue";
+export const protobufPackage = "menu";
 
-/** Menue entity */
-export interface Menue {
+export interface UpdateMenuStatusRequest {
   id: string;
-  foodName: string;
-  restaurantID: string;
-  description: string;
-  imageReference: string;
-  price: number;
-  category: string;
-  isAvailable: boolean;
+  available: boolean;
 }
 
-/** Request to create a new menue */
-export interface CreateMenueRequest {
-  foodName: string;
-  restaurantID: string;
-  description: string;
-  imageReference: string;
-  price: number;
-  category: string;
-  isAvailable: boolean;
-}
-
-/** Request to update an existing menue */
-export interface UpdateMenueRequest {
-  id: string;
-  foodName: string;
-  restaurantID: string;
-  description: string;
-  imageReference: string;
-  price: number;
-  category: string;
-  isAvailable: boolean;
-}
-
-/** ID wrapper */
 export interface Id {
   id: string;
 }
 
-/** List of menues */
-export interface MenueList {
-  items: Menue[];
+export interface RestaurantIdRequest {
+  restaurantId: string;
 }
 
-export const MENUE_PACKAGE_NAME = "menue";
-
-/** The Menue service definition */
-
-export interface MenueServiceClient {
-  createMenue(request: CreateMenueRequest): Observable<Menue>;
-
-  getMenue(request: Id): Observable<Menue>;
-
-  getAllMenues(request: Empty): Observable<MenueList>;
-
-  updateMenue(request: UpdateMenueRequest): Observable<Menue>;
-
-  deleteMenue(request: Id): Observable<Empty>;
+export interface NameRequest {
+  name: string;
 }
 
-/** The Menue service definition */
-
-export interface MenueServiceController {
-  createMenue(request: CreateMenueRequest): Promise<Menue> | Observable<Menue> | Menue;
-
-  getMenue(request: Id): Promise<Menue> | Observable<Menue> | Menue;
-
-  getAllMenues(request: Empty): Promise<MenueList> | Observable<MenueList> | MenueList;
-
-  updateMenue(request: UpdateMenueRequest): Promise<Menue> | Observable<Menue> | Menue;
-
-  deleteMenue(request: Id): void;
+export interface Menu {
+  id: string;
+  menuId: string;
+  restaurantId: string;
+  name: string;
+  description: string;
+  price: number;
+  imageUrl: string;
+  available: boolean;
+  createdAt: Timestamp | undefined;
+  updatedAt: Timestamp | undefined;
 }
 
-export function MenueServiceControllerMethods() {
+export interface CreateMenuRequest {
+  restaurantId: string;
+  name: string;
+  description: string;
+  price: number;
+  imageUrl: string;
+  available: boolean;
+}
+
+export interface UpdateMenuRequest {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  imageUrl: string;
+  available: boolean;
+}
+
+export interface MenuList {
+  menus: Menu[];
+}
+
+export const MENU_PACKAGE_NAME = "menu";
+
+export interface MenuServiceClient {
+  createMenu(request: CreateMenuRequest): Observable<Menu>;
+
+  getMenuById(request: Id): Observable<Menu>;
+
+  getMenusByRestaurantId(request: RestaurantIdRequest): Observable<MenuList>;
+
+  getMenusByName(request: NameRequest): Observable<MenuList>;
+
+  updateMenu(request: UpdateMenuRequest): Observable<Menu>;
+
+  updateMenuStatus(request: UpdateMenuStatusRequest): Observable<Menu>;
+
+  deleteMenu(request: Id): Observable<Empty>;
+
+  getAllMenus(request: Empty): Observable<MenuList>;
+
+  getAllValidMenus(request: Empty): Observable<MenuList>;
+}
+
+export interface MenuServiceController {
+  createMenu(request: CreateMenuRequest): Promise<Menu> | Observable<Menu> | Menu;
+
+  getMenuById(request: Id): Promise<Menu> | Observable<Menu> | Menu;
+
+  getMenusByRestaurantId(request: RestaurantIdRequest): Promise<MenuList> | Observable<MenuList> | MenuList;
+
+  getMenusByName(request: NameRequest): Promise<MenuList> | Observable<MenuList> | MenuList;
+
+  updateMenu(request: UpdateMenuRequest): Promise<Menu> | Observable<Menu> | Menu;
+
+  updateMenuStatus(request: UpdateMenuStatusRequest): Promise<Menu> | Observable<Menu> | Menu;
+
+  deleteMenu(request: Id): void;
+
+  getAllMenus(request: Empty): Promise<MenuList> | Observable<MenuList> | MenuList;
+
+  getAllValidMenus(request: Empty): Promise<MenuList> | Observable<MenuList> | MenuList;
+}
+
+export function MenuServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["createMenue", "getMenue", "getAllMenues", "updateMenue", "deleteMenue"];
+    const grpcMethods: string[] = [
+      "createMenu",
+      "getMenuById",
+      "getMenusByRestaurantId",
+      "getMenusByName",
+      "updateMenu",
+      "updateMenuStatus",
+      "deleteMenu",
+      "getAllMenus",
+      "getAllValidMenus",
+    ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
-      GrpcMethod("MenueService", method)(constructor.prototype[method], method, descriptor);
+      GrpcMethod("MenuService", method)(constructor.prototype[method], method, descriptor);
     }
     const grpcStreamMethods: string[] = [];
     for (const method of grpcStreamMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
-      GrpcStreamMethod("MenueService", method)(constructor.prototype[method], method, descriptor);
+      GrpcStreamMethod("MenuService", method)(constructor.prototype[method], method, descriptor);
     }
   };
 }
 
-export const MENUE_SERVICE_NAME = "MenueService";
+export const MENU_SERVICE_NAME = "MenuService";

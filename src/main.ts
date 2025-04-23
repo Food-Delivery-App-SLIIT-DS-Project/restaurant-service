@@ -9,14 +9,20 @@ async function bootstrap() {
     {
       transport: Transport.GRPC,
       options: {
-        protoPath: join(__dirname, '../restaurant.proto'), // Path to your proto file
-        package: 'restaurant',
+        // Register multiple proto files
+        protoPath: [
+          join(__dirname, '../restaurant.proto'),
+          join(__dirname, '../menu.proto'),
+        ],
+        package: ['restaurant', 'menu'],
         url: 'localhost:50057', // gRPC server URL
       },
     },
   );
   app.enableShutdownHooks();
   await app.listen();
-  console.log('Restaurant service is running on: http://localhost:50057');
+  console.log(
+    'Microservice restuarant & menue is running on: http://localhost:50057',
+  );
 }
 void bootstrap();

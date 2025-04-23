@@ -8,6 +8,9 @@ import { nanoid } from 'nanoid';
 
 @Injectable()
 export class RestaurantService {
+  getRestaurant(arg0: { id: string }) {
+    throw new Error('Method not implemented.');
+  }
   constructor(
     @InjectModel(Restaurant.name)
     private restaurantModel: Model<RestaurantDocument>,
@@ -25,6 +28,15 @@ export class RestaurantService {
     return this.restaurantModel.find().lean().exec();
   }
 
+  //find all restaurants with filters (isavailable,isverified)
+  //this is used to show restaurants to customers
+  async findAllWithFilters(): Promise<Restaurant[]> {
+    return this.restaurantModel
+      .find({ isOpen: true, isVerified: true })
+      .lean()
+      .exec();
+  }
+
   // Find a restaurant by restaurantId
   async findOne(restaurantId: string): Promise<Restaurant | null> {
     return this.restaurantModel.findOne({ restaurantId }).lean().exec();
@@ -37,6 +49,27 @@ export class RestaurantService {
   ): Promise<Restaurant | null> {
     return this.restaurantModel
       .findOneAndUpdate({ restaurantId }, dto, { new: true })
+      .lean()
+      .exec();
+  }
+
+  //update isverifed
+  async updateIsVerified(
+    restaurantId: string,
+    isVerified: boolean,
+  ): Promise<Restaurant | null> {
+    return this.restaurantModel
+      .findOneAndUpdate({ restaurantId }, { isVerified }, { new: true })
+      .lean()
+      .exec();
+  }
+  // Update isOpen
+  async updateIsOpen(
+    restaurantId: string,
+    isOpen: boolean,
+  ): Promise<Restaurant | null> {
+    return this.restaurantModel
+      .findOneAndUpdate({ restaurantId }, { isOpen }, { new: true })
       .lean()
       .exec();
   }

@@ -31,6 +31,13 @@ export class RestaurantController {
     console.log('Fetched all restaurants:', restaurants);
     return { restaurants };
   }
+  // gRPC method to fetch all restaurants with filters
+  @GrpcMethod('RestaurantService', 'GetAllRestaurantsWithFilters')
+  async getAllRestaurantsWithFilters() {
+    const restaurants = await this.restaurantService.findAllWithFilters();
+    console.log('Fetched all restaurants with filters:', restaurants);
+    return { restaurants };
+  }
 
   // gRPC method to update a restaurant by restaurantId
   @GrpcMethod('RestaurantService', 'UpdateRestaurant')
@@ -40,6 +47,39 @@ export class RestaurantController {
       data,
     );
     console.log('Updated restaurant:', updated);
+    return updated ? { restaurant: updated } : null;
+  }
+  // gRPC method to update the isVerified status of a restaurant
+  @GrpcMethod('RestaurantService', 'UpdateIsVerified')
+  async updateIsVerified({
+    restaurantId,
+    isVerified,
+  }: {
+    restaurantId: string;
+    isVerified: boolean;
+  }) {
+    const updated = await this.restaurantService.updateIsVerified(
+      restaurantId,
+      isVerified,
+    );
+    console.log('Updated restaurant verification status:', updated);
+    return updated ? { restaurant: updated } : null;
+  }
+
+  // gRPC method to update the isOpen status of a restaurant
+  @GrpcMethod('RestaurantService', 'UpdateIsOpen')
+  async updateIsOpen({
+    restaurantId,
+    isOpen,
+  }: {
+    restaurantId: string;
+    isOpen: boolean;
+  }) {
+    const updated = await this.restaurantService.updateIsOpen(
+      restaurantId,
+      isOpen,
+    );
+    console.log('Updated restaurant open status:', updated);
     return updated ? { restaurant: updated } : null;
   }
 

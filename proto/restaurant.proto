@@ -11,18 +11,24 @@ service RestaurantService {
   rpc GetAllRestaurants(google.protobuf.Empty) returns (RestaurantList);
   rpc UpdateRestaurant(UpdateRestaurantRequest) returns (Restaurant);
   rpc DeleteRestaurant(RestaurantId) returns (google.protobuf.Empty);
-
-  // additional rpc
   rpc GetRestaurantByName(NameRequest) returns (Restaurant);
   rpc GetRestaurantsByCuisine(CuisineRequest) returns (RestaurantList);
   rpc GetRestaurantsByUserId(UserIdRequest) returns (RestaurantList);
+  rpc UpdateIsVerified(UpdateIsVerifiedRequest) returns (RestaurantResponse);
+  rpc UpdateIsOpen(UpdateIsOpenRequest) returns (RestaurantResponse);
   rpc GetRestaurantsByRating(RatingRequest) returns (RestaurantList);
   rpc GetRestaurantsByLocation(LocationRequest) returns (RestaurantList);
+  rpc GetAllRestaurantsWithFilters(google.protobuf.Empty) returns (RestaurantList);
+
 }
 
 // Common Messages
 message RestaurantId {
   string restaurantId = 1;
+}
+
+message RestaurantResponse {
+  Restaurant restaurant = 1;
 }
 
 message NameRequest {
@@ -99,4 +105,14 @@ message UpdateRestaurantRequest {
 
 message RestaurantList {
   repeated Restaurant restaurants = 1;
+}
+
+message UpdateIsVerifiedRequest {
+  string restaurantId = 1;
+  bool isVerified = 2;
+}
+
+message UpdateIsOpenRequest {
+  string restaurantId = 1;
+  bool isOpen = 2;
 }
