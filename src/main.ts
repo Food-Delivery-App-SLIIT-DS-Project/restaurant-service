@@ -7,8 +7,7 @@ import { RESTAURANT_PACKAGE_NAME } from './types';
 
 async function bootstrap() {
   void ConfigModule.forRoot({ isGlobal: true });
-  const host = process.env.GRPC_HOST || 'localhost';
-  const port = process.env.GRPC_PORT || '50057';
+  const url = process.env.RESTAURANT_SERVICE_URL || 'localhost:50055';
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
     {
@@ -16,12 +15,12 @@ async function bootstrap() {
       options: {
         protoPath: join(__dirname, '../proto/restaurant.proto'),
         package: RESTAURANT_PACKAGE_NAME,
-        url: `${host}:${port}`,
+        url: url,
       },
     },
   );
   app.enableShutdownHooks();
   await app.listen();
-  console.log(`Restaurant service is running on: grpc://${host}:${port}`);
+  console.log(`Restaurant service is running on ${url}`);
 }
 void bootstrap();

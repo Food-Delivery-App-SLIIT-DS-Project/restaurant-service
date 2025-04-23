@@ -22,7 +22,7 @@ export class RestaurantService {
   constructor(
     @InjectModel(Restaurant.name)
     private restaurantModel: Model<RestaurantDocument>,
-    @Inject('KAFKA_SERVICE') private readonly kafkaClient: ClientKafka,
+    @Inject('KAFKA_SERVICE_RESTAURANT') private readonly kafkaClient: ClientKafka,
   ) {}
   async onModuleInit() {
     await this.kafkaClient.connect();
