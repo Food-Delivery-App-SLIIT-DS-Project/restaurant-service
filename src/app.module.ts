@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { RestaurantModule } from 'src/restaurant/restaurant.module';
 import { KafkaModule } from './kafka/kafka.module';
+import { MenuModule } from './menu/menu.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { KafkaModule } from './kafka/kafka.module';
     ),
     RestaurantModule,
     KafkaModule,
+    MenuModule,
   ],
   controllers: [],
   providers: [],

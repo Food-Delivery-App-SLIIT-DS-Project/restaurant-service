@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { join } from 'path';
 import { ConfigModule } from '@nestjs/config';
 import { RESTAURANT_PACKAGE_NAME } from './types';
+import { MENU_PACKAGE_NAME } from './types/menu';
 
 async function bootstrap() {
   void ConfigModule.forRoot({ isGlobal: true });
@@ -13,8 +14,11 @@ async function bootstrap() {
     {
       transport: Transport.GRPC,
       options: {
-        protoPath: join(__dirname, '../proto/restaurant.proto'),
-        package: RESTAURANT_PACKAGE_NAME,
+        protoPath: [
+          join(__dirname, '../proto/restaurant.proto'),
+          join(__dirname, '../proto/menu.proto'),
+        ],
+        package: [RESTAURANT_PACKAGE_NAME, MENU_PACKAGE_NAME],
         url: url,
       },
     },

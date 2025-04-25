@@ -42,6 +42,7 @@ export class RestaurantService {
   async restaurantOrderAcceptOrReject(
     data: any,
   ): Promise<OrderAcceptedResponse> {
+    console.log(data)
     const { restaurantId, orderId } = data;
     if (!restaurantId || !orderId) {
       throw new BadRequestException('restaurantId and orderId are required');
