@@ -1,0 +1,68 @@
+syntax = "proto3";
+package menu;
+
+service MenuService {
+  rpc CreateMenu(CreateMenuRequest) returns (Menu);
+  rpc GetMenuById(MenuId) returns (Menu);
+  rpc GetMenusByRestaurantId(RestaurantId) returns (MenuList);
+  rpc GetMenusByName(NameRequest) returns (MenuList);
+  rpc UpdateMenu(UpdateMenuRequest) returns (Menu);
+  rpc UpdateMenuStatus(UpdateMenuStatusRequest) returns (Menu);
+  rpc DeleteMenu(MenuId) returns (Empty);
+  rpc GetAllMenus(Empty) returns (MenuList);
+  rpc GetAllValidMenus(Empty) returns (MenuList);
+}
+
+//empty message 
+message Empty {}
+
+message RestaurantId {
+  string restaurantId = 1;
+}
+
+//common messages
+
+message UpdateMenuStatusRequest {
+  string menuId = 1;
+  bool available = 2;
+}
+
+message MenuId {
+  string menuId = 1;
+}
+
+message NameRequest {
+  string name = 1;
+}
+
+message Menu {
+  string menuId = 2;
+  string restaurantId = 3;
+  string name = 4;
+  string description = 5;
+  double price = 6;
+  string imageUrl = 7;
+  bool available = 8;
+}
+
+message CreateMenuRequest {
+  string restaurantId = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  string imageUrl = 5;
+  bool available = 6;
+}
+
+message UpdateMenuRequest {
+  string menuId = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  string imageUrl = 5;
+  bool available = 6;
+}
+
+message MenuList {
+  repeated Menu menus = 1;
+}

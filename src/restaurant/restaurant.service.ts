@@ -1,124 +1,245 @@
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable prettier/prettier */
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Restaurant, RestaurantDocument } from '../schemas/restaurant.schema';
+import { ClientKafka } from '@nestjs/microservices';
 import {
-  CreateRestaurantDto,
-  DeleteResponse,
-  FindOneDto,
+  CreateRestaurantRequest,
+  CuisineRequest,
+  LocationRequest,
+  NameRequest,
   OrderAcceptedResponse,
+  RestaurantId,
   RestaurantList,
   RestaurantResponse,
-  UpdateRestaurantDto,
-} from 'src/types';
-import { ClientKafka } from '@nestjs/microservices';
+  UpdateIsOpenRequest,
+  UpdateIsVerifiedRequest,
+  UpdateRestaurantRequest,
+  UserIdRequest,
+} from 'src/types/restaurant';
 
 @Injectable()
 export class RestaurantService {
   constructor(
     @InjectModel(Restaurant.name)
     private restaurantModel: Model<RestaurantDocument>,
-    @Inject('KAFKA_SERVICE_RESTAURANT') private readonly kafkaClient: ClientKafka,
+    @Inject('KAFKA_SERVICE_RESTAURANT')
+    private readonly kafkaClient: ClientKafka,
   ) {}
   async onModuleInit() {
     await this.kafkaClient.connect();
   }
   // kafka function --- restaurant accept order  event producer-------------
-  restaurantAcceptOrder(data: any): OrderAcceptedResponse {
-    console.log('Restaurant Accept Order', data);
-    this.kafkaClient.emit('ORDER_ACCEPTED', data);
+  async restaurantOrderAcceptOrReject(
+    data: any,
+  ): Promise<OrderAcceptedResponse> {
+    const { restaurantId, orderId } = data;
+    if (!restaurantId || !orderId) {
+      throw new BadRequestException('restaurantId and orderId are required');
+    }
+    // Check if the restaurant exists
+    const restaurant = await this.restaurantModel.findOne({ restaurantId });
+    if (!restaurant) {
+      throw new NotFoundException('Restaurant not found');
+    }
+    const location = restaurant.location;
+    const orderDetails = {
+      restaurantId,
+      orderId,
+      location,
+    };
+    // Emit the event to Kafka
+    console.log('Restaurant Accept Order', orderDetails);
+    this.kafkaClient.emit('ORDER_ACCEPTED', orderDetails);
     return { status: true };
   }
 
-  async create(
-    createRestaurantDto: CreateRestaurantDto,
+  // create restaurnat ------------------------------------
+  async createRestaurant(
+    data: CreateRestaurantRequest,
   ): Promise<RestaurantResponse> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     const restaurantId = uuid();
-    const model = {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+
+    const created = new this.restaurantModel({
+      ...data,
       restaurantId,
-      ...createRestaurantDto,
-    };
-    const newRestaurant = new this.restaurantModel(model);
-    const save = await newRestaurant.save();
-    console.log(save);
-    return {
-      id: save.restaurantId,
-      userId: save.userId,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      restaurantName: save.restaurantName,
-      address: save.address,
-      openingHours: save.openingHours,
-      cuisineType: save.cuisineType,
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-      createdAt: save.createdAt,
-      updatedAt: save.updatedAt,
-    };
-  }
-
-  async FindAllRestaurants(): Promise<RestaurantList> {
-    const restaurants = await this.restaurantModel.find().exec();
-    return {
-      restaurants: restaurants.map((restaurant) => ({
-        id: restaurant.restaurantId,
-        userId: restaurant.userId,
-        restaurantName: restaurant.restaurantName,
-        address: restaurant.address,
-        openingHours: restaurant.openingHours,
-        cuisineType: restaurant.cuisineType,
-      })),
-    };
-  }
-
-  async findOne(data: FindOneDto): Promise<RestaurantResponse> {
-    console.log('id---', data.id);
-    const restaurant = await this.restaurantModel.findOne({
-      restaurantId: data.id,
+      numberOfRatings: 0,
+      isOpen: false,
+      isVerified: false,
     });
-    if (!restaurant) throw new NotFoundException('Restaurant not found');
-    return {
-      id: restaurant.restaurantId,
-      userId: restaurant.userId,
-      restaurantName: restaurant.restaurantName,
-      address: restaurant.address,
-      openingHours: restaurant.openingHours,
-      cuisineType: restaurant.cuisineType,
-      createdAt: restaurant.createdAt,
-      updatedAt: restaurant.updatedAt,
-    };
+
+    const result = await created.save();
+    return this.toResponse(result);
   }
 
-  async update(updateDto: UpdateRestaurantDto): Promise<RestaurantResponse> {
-    const updated = await this.restaurantModel.findOneAndUpdate(
-      { restaurantId: updateDto.id },
-      updateDto,
+  //increase number of ratings ------------------
+  async UpdateRating(restaurantId: string): Promise<RestaurantResponse> {
+    const result = await this.restaurantModel.findOneAndUpdate(
+      { restaurantId },
+      { $inc: { numberOfRatings: 1 } },
       { new: true },
     );
-
-    if (!updated) throw new NotFoundException('Restaurant not found');
-    return {
-      id: updated.restaurantId,
-      userId: updated.userId,
-      restaurantName: updated.restaurantName,
-      address: updated.address,
-      openingHours: updated.openingHours,
-      cuisineType: updated.cuisineType,
-      createdAt: updated.createdAt,
-      updatedAt: updated.updatedAt,
-    };
+    if (!result) throw new NotFoundException('Restaurant not found');
+    return this.toResponse(result);
   }
 
-  async remove(data: FindOneDto): Promise<DeleteResponse> {
-    const result = await this.restaurantModel.findOneAndDelete({
-      restaurantId: data.id,
+  //decrease number of ratings--------------------------------------
+  async DecreaseRating(restaurantId: string): Promise<RestaurantResponse> {
+    const result = await this.restaurantModel.findOneAndUpdate(
+      { restaurantId },
+      { $inc: { numberOfRatings: -1 } },
+      { new: true },
+    );
+    if (!result) throw new NotFoundException('Restaurant not found');
+    return this.toResponse(result);
+  }
+
+  //get all restaurants ------------------------------------
+  async getRestaurant(data: RestaurantId): Promise<RestaurantResponse> {
+    const result = await this.restaurantModel.findOne({
+      restaurantId: data.restaurantId,
     });
+    if (!result) throw new NotFoundException('Restaurant not found');
+    return this.toResponse(result);
+  }
+
+  //get all restaurants ------------------------------------
+  async getAllRestaurants(): Promise<RestaurantList> {
+    const restaurants = await this.restaurantModel.find();
+    return { restaurants: restaurants.map((r) => this.toResponse(r)) };
+  }
+
+  //get all restaurants ------------------------------------
+  async updateRestaurant(
+    data: UpdateRestaurantRequest,
+  ): Promise<RestaurantResponse> {
+    const result = await this.restaurantModel.findOneAndUpdate(
+      { restaurantId: data.restaurantId },
+      { ...data },
+      { new: true },
+    );
+    if (!result) throw new NotFoundException('Restaurant not found');
+    return this.toResponse(result);
+  }
+
+  //delete restaurant ------------------------------------
+  async deleteRestaurant(data: {
+    restaurantId: string;
+  }): Promise<{ message: string }> {
+    console.log('Trying to delete:', data.restaurantId);
+
+    const found = await this.restaurantModel.findOne({
+      restaurantId: data.restaurantId,
+    });
+    if (!found) {
+      throw new NotFoundException(
+        `Restaurant with ID ${data.restaurantId} not found`,
+      );
+    }
+    await this.restaurantModel.deleteOne({ restaurantId: data.restaurantId });
+    return { message: 'Restaurant deleted successfully' };
+  }
+
+  //get restaurant by name ------------------------------------
+  async getRestaurantByName(data: NameRequest): Promise<RestaurantResponse> {
+    const result = await this.restaurantModel.findOne({ name: data.name });
+    if (!result) throw new NotFoundException('Restaurant not found');
+    return this.toResponse(result);
+  }
+
+  //get restaurant by cuisine ------------------------------------
+  async getRestaurantsByCuisine(data: CuisineRequest): Promise<RestaurantList> {
+    const restaurants = await this.restaurantModel.find({
+      cuisineType: data.cuisine,
+    });
+    return { restaurants: restaurants.map((r) => this.toResponse(r)) };
+  }
+
+  //get restaurant by userId ------------------------------------
+  async getRestaurantsByUserId(data: UserIdRequest): Promise<RestaurantList> {
+    const restaurants = await this.restaurantModel.find({
+      userId: data.userId,
+    });
+    return { restaurants: restaurants.map((r) => this.toResponse(r)) };
+  }
+
+  //update restaurant isVerified ------------------------------------
+  async updateIsVerified(
+    data: UpdateIsVerifiedRequest,
+  ): Promise<RestaurantResponse> {
+    console.log('Received data for updateIsVerified:', data); // Log the incoming data
+    if (data.isVerified === undefined) {
+      throw new BadRequestException('isVerified field is required');
+    }
+
+    const result = await this.restaurantModel.findOneAndUpdate(
+      { restaurantId: data.restaurantId }, // Find by restaurantId instead of _id
+      { isVerified: data.isVerified }, // Update isVerified to the passed value
+      { new: true }, // Return the updated document
+    );
 
     if (!result) throw new NotFoundException('Restaurant not found');
-    return { success: true };
+    return this.toResponse(result);
+  }
+
+  //update restaurant isOpen ------------------------------------
+  async updateIsOpen(data: UpdateIsOpenRequest): Promise<RestaurantResponse> {
+    const result = await this.restaurantModel.findOneAndUpdate(
+      { restaurantId: data.restaurantId }, // Find by restaurantId instead of _id
+      { isOpen: data.isOpen },
+      { new: true },
+    );
+    if (!result) throw new NotFoundException('Restaurant not found');
+    return this.toResponse(result);
+  }
+
+  //get restaurant by location ------------------------------------
+  async getRestaurantsByLocation(
+    data: LocationRequest,
+  ): Promise<RestaurantList> {
+    const { latitude, longitude, radius } = data;
+    const restaurants = await this.restaurantModel.find({
+      location: {
+        $geoWithin: {
+          $centerSphere: [[longitude, latitude], radius / 6378.1],
+        },
+      },
+    });
+    return { restaurants: restaurants.map((r) => this.toResponse(r)) };
+  }
+
+  async getAllRestaurantsWithFilters(): Promise<RestaurantList> {
+    const restaurants = await this.restaurantModel.find({
+      isOpen: true,
+      isVerified: true,
+    });
+    return { restaurants: restaurants.map((r) => this.toResponse(r)) };
+  }
+
+  private toResponse(doc: RestaurantDocument): RestaurantResponse {
+    return {
+      restaurantId: doc.restaurantId,
+      userId: doc.userId,
+      name: doc.name,
+      address: doc.address,
+      location: doc.location,
+      phone: doc.phone,
+      cuisineType: doc.cuisineType,
+      description: doc.description,
+      openHours: doc.openHours,
+      imageReference: doc.imageReference,
+      numberOfRatings: doc.numberOfRatings,
+      isOpen: doc.isOpen,
+      isVerified: doc.isVerified,
+    };
   }
 }
