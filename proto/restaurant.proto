@@ -17,7 +17,7 @@ service RestaurantService {
   rpc GetAllRestaurantsWithFilters(Empty) returns (RestaurantList);
   rpc UpdateRating(RatingIncrease) returns (Empty);
   rpc DecreaseRating(RestaurantId) returns (Empty);
-  rpc RestaurantOrderAcceptOrReject(RestaurantId) returns (OrderAcceptedResponse);
+  rpc RestaurantOrderAcceptOrReject(OrderAcceptedDto) returns (OrderAcceptedResponse);
 }
 
 message OrderAcceptedDto {

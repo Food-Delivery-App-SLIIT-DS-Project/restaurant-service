@@ -8,7 +8,7 @@ import { MENU_PACKAGE_NAME } from './types/menu';
 
 async function bootstrap() {
   void ConfigModule.forRoot({ isGlobal: true });
-  const url = process.env.RESTAURANT_SERVICE_URL || 'localhost:50055';
+  const url = process.env.RESTAURANT_SERVICE_URL || '0.0.0.0:50057';
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
     AppModule,
     {
