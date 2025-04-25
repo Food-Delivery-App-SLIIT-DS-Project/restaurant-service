@@ -1,115 +1,74 @@
-import { Controller, NotFoundException } from '@nestjs/common';
-import { GrpcMethod } from '@nestjs/microservices';
-import { MenuService } from './menu.service';
-import { Menu } from './entities/menu.entity';
-import { CreateMenuDto } from './dto/create-menu.dto';
-import { UpdateMenuDto } from './dto/update-menu.dto';
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/await-thenable */
+/* eslint-disable prettier/prettier */
 
+import { Controller } from '@nestjs/common';
+import { from, Observable } from 'rxjs';
+import { MenuService } from './menu.service';
+import {
+  MenuServiceController,
+  MenuServiceControllerMethods,
+  CreateMenuRequest,
+  Menu,
+  MenuId,
+  RestaurantId,
+  MenuList,
+  NameRequest,
+  UpdateMenuRequest,
+  UpdateMenuStatusRequest,
+  Empty,
+} from '../proto/menu';
+
+@MenuServiceControllerMethods()
 @Controller()
-export class MenuController {
+export class MenuController implements MenuServiceController {
   constructor(private readonly menuService: MenuService) {}
 
-  // gRPC CreateMenu method
-  @GrpcMethod('MenuService', 'CreateMenu')
-  async createMenu(dto: CreateMenuDto): Promise<Menu> {
-    console.log('[CreateMenu] Request DTO:', dto);
-    const created = await this.menuService.create(dto);
-    console.log('[CreateMenu] Created Menu:', created);
-    return created;
+  createMenu(data: CreateMenuRequest): Observable<Menu> {
+    console.log('createMenu', data);
+    return from(this.menuService.create(data));
   }
 
-  // gRPC GetMenuById method
-  @GrpcMethod('MenuService', 'GetMenuById')
-  async getMenuById(data: { id: string }): Promise<Menu> {
-    console.log('[GetMenuById] Requested ID:', data.id);
-    const menu = await this.menuService.findOne(data.id);
-    if (!menu) {
-      console.error('[GetMenuById] Menu not found for ID:', data.id);
-      throw new NotFoundException(`Menu with id ${data.id} not found`);
-    }
-    console.log('[GetMenuById] Found Menu:', menu);
-    return menu;
+  getAllMenus(_: Empty): Observable<MenuList> {
+    return from(this.menuService.findAll().then((menus) => ({ menus })));
   }
 
-  // gRPC GetMenusByRestaurantId method
-  @GrpcMethod('MenuService', 'GetMenusByRestaurantId')
-  async getMenusByRestaurantId(data: {
-    restaurantId: string;
-  }): Promise<{ menus: Menu[] }> {
-    console.log('[GetMenusByRestaurantId] Restaurant ID:', data.restaurantId);
-    const menus = await this.menuService.findByRestaurantId(data.restaurantId);
-    console.log('[GetMenusByRestaurantId] Menus:', menus);
-    return { menus }; // ✅ return wrapped object
+  getAllValidMenus(_: Empty): Observable<MenuList> {
+    return from(this.menuService.getAllValidMenus().then((menus) => ({ menus })));
   }
 
-  // gRPC GetMenusByName method
-  @GrpcMethod('MenuService', 'GetMenusByName')
-  async getMenusByName(data: { name: string }): Promise<{ menus: Menu[] }> {
-    console.log('[GetMenusByName] Requested Name:', data.name);
-    const menus = await this.menuService.findByName(data.name);
-    console.log('[GetMenusByName] Found Menus:', menus);
-    return { menus }; // ✅ return wrapped object
+  getMenuById(data: MenuId): Observable<Menu> {
+    return from(this.menuService.findOne(data.menuId).then(menu => menu as Menu));
   }
 
-  // gRPC UpdateMenu method
-  @GrpcMethod('MenuService', 'UpdateMenu')
-  async updateMenu(data: { id: string; dto: UpdateMenuDto }): Promise<Menu> {
-    console.log('[UpdateMenu] ID:', data.id, 'DTO:', data.dto);
-    const updatedMenu = await this.menuService.update(data.id, data.dto);
-    if (!updatedMenu) {
-      console.error('[UpdateMenu] Menu not found for ID:', data.id);
-      throw new NotFoundException(`Menu with id ${data.id} not found`);
-    }
-    console.log('[UpdateMenu] Updated Menu:', updatedMenu);
-    return updatedMenu;
-  }
-
-  // gRPC UpdateMenuStatus method
-  @GrpcMethod('MenuService', 'UpdateMenuStatus')
-  async updateMenuStatus(data: {
-    id: string;
-    available: boolean;
-  }): Promise<Menu> {
-    console.log(
-      '[UpdateMenuStatus] ID:',
-      data.id,
-      'Available:',
-      data.available,
+  getMenusByRestaurantId(data: RestaurantId): Observable<MenuList> {
+    return from(
+      this.menuService.findByRestaurantId(data.restaurantId).then((menus) => ({
+        menus,
+      }))
     );
-    const updatedMenu = await this.menuService.updateMenuAvailability(
-      data.id,
-      data.available,
+  }
+
+  getMenusByName(data: NameRequest): Observable<MenuList> {
+    return from(
+      this.menuService.findByName(data.name).then((menus) => ({
+        menus,
+      }))
     );
-    if (!updatedMenu) {
-      console.error('[UpdateMenuStatus] Menu not found for ID:', data.id);
-      throw new NotFoundException(`Menu with id ${data.id} not found`);
-    }
-    console.log('[UpdateMenuStatus] Updated Menu:', updatedMenu);
-    return updatedMenu;
   }
 
-  // gRPC DeleteMenu method
-  @GrpcMethod('MenuService', 'DeleteMenu')
-  async deleteMenu(data: { id: string }): Promise<void> {
-    console.log('[DeleteMenu] Deleting Menu ID:', data.id);
-    await this.menuService.delete(data.id);
-    console.log('[DeleteMenu] Deleted successfully');
+  updateMenu(data: UpdateMenuRequest): Observable<Menu> {
+    return from(this.menuService.update(data.menuId, data).then(menu => menu as Menu));
   }
 
-  // gRPC GetAllMenus method
-  @GrpcMethod('MenuService', 'GetAllMenus')
-  async getAllMenus(): Promise<{ menus: Menu[] }> {
-    console.log('[GetAllMenus] Fetching all menus...');
-    const menus = await this.menuService.findAll();
-    console.log('[GetAllMenus] Menus:', menus);
-    return { menus };
+  updateMenuStatus(data: UpdateMenuStatusRequest): Observable<Menu> {
+    return from(this.menuService.updateMenuAvailability(data.menuId, data.available).then(menu => menu as Menu));
   }
-  // gRPC GetAllValidMenus method
-  @GrpcMethod('MenuService', 'GetAllValidMenus')
-  async getAllValidMenus(): Promise<{ menus: Menu[] }> {
-    console.log('[GetAllValidMenus] Fetching all valid menus...');
-    const menus = await this.menuService.getAllValidMenus();
-    console.log('[GetAllValidMenus] Valid Menus:', menus);
-    return { menus };
+
+  deleteMenu(data: MenuId): Observable<Empty> {
+    return from(
+      this.menuService.delete(data.menuId).then(() => ({}))
+    );
   }
 }

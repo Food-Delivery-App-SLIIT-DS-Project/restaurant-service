@@ -7,18 +7,19 @@
 /* eslint-disable */
 import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
 import { Observable } from "rxjs";
-import { Empty } from "../google/protobuf/empty";
-import { Timestamp } from "../google/protobuf/timestamp";
 
 export const protobufPackage = "restaurant";
 
-/** Common Messages */
-export interface RestaurantId {
+/** empty message */
+export interface Empty {
+}
+
+export interface RatingIncrease {
   restaurantId: string;
 }
 
-export interface RestaurantResponse {
-  restaurant: Restaurant | undefined;
+export interface RestaurantId {
+  restaurantId: string;
 }
 
 export interface NameRequest {
@@ -33,10 +34,6 @@ export interface UserIdRequest {
   userId: string;
 }
 
-export interface RatingRequest {
-  rating: number;
-}
-
 export interface Coordinates {
   longitude: number;
   latitude: number;
@@ -45,12 +42,25 @@ export interface Coordinates {
 export interface LocationRequest {
   latitude: number;
   longitude: number;
-  /** in kilometers */
   radius: number;
 }
 
+export interface RestaurantList {
+  restaurants: RestaurantResponse[];
+}
+
+export interface UpdateIsVerifiedRequest {
+  restaurantId: string;
+  isVerified: boolean;
+}
+
+export interface UpdateIsOpenRequest {
+  restaurantId: string;
+  isOpen: boolean;
+}
+
 /** Restaurant Data */
-export interface Restaurant {
+export interface RestaurantResponse {
   restaurantId: string;
   userId: string;
   name: string;
@@ -64,8 +74,6 @@ export interface Restaurant {
   numberOfRatings: number;
   isOpen: boolean;
   isVerified: boolean;
-  createdAt: Timestamp | undefined;
-  updatedAt: Timestamp | undefined;
 }
 
 export interface CreateRestaurantRequest {
@@ -94,34 +102,22 @@ export interface UpdateRestaurantRequest {
   isVerified: boolean;
 }
 
-export interface RestaurantList {
-  restaurants: Restaurant[];
-}
-
-export interface UpdateIsVerifiedRequest {
-  restaurantId: string;
-  isVerified: boolean;
-}
-
-export interface UpdateIsOpenRequest {
-  restaurantId: string;
-  isOpen: boolean;
-}
-
 export const RESTAURANT_PACKAGE_NAME = "restaurant";
 
-export interface RestaurantServiceClient {
-  createRestaurant(request: CreateRestaurantRequest): Observable<Restaurant>;
+/** rpc list */
 
-  getRestaurant(request: RestaurantId): Observable<Restaurant>;
+export interface RestaurantServiceClient {
+  createRestaurant(request: CreateRestaurantRequest): Observable<RestaurantResponse>;
+
+  getRestaurant(request: RestaurantId): Observable<RestaurantResponse>;
 
   getAllRestaurants(request: Empty): Observable<RestaurantList>;
 
-  updateRestaurant(request: UpdateRestaurantRequest): Observable<Restaurant>;
+  updateRestaurant(request: UpdateRestaurantRequest): Observable<RestaurantResponse>;
 
   deleteRestaurant(request: RestaurantId): Observable<Empty>;
 
-  getRestaurantByName(request: NameRequest): Observable<Restaurant>;
+  getRestaurantByName(request: NameRequest): Observable<RestaurantResponse>;
 
   getRestaurantsByCuisine(request: CuisineRequest): Observable<RestaurantList>;
 
@@ -131,25 +127,37 @@ export interface RestaurantServiceClient {
 
   updateIsOpen(request: UpdateIsOpenRequest): Observable<RestaurantResponse>;
 
-  getRestaurantsByRating(request: RatingRequest): Observable<RestaurantList>;
-
   getRestaurantsByLocation(request: LocationRequest): Observable<RestaurantList>;
 
   getAllRestaurantsWithFilters(request: Empty): Observable<RestaurantList>;
+
+  updateRating(request: RatingIncrease): Observable<Empty>;
+
+  decreaseRating(request: RestaurantId): Observable<Empty>;
 }
 
-export interface RestaurantServiceController {
-  createRestaurant(request: CreateRestaurantRequest): Promise<Restaurant> | Observable<Restaurant> | Restaurant;
+/** rpc list */
 
-  getRestaurant(request: RestaurantId): Promise<Restaurant> | Observable<Restaurant> | Restaurant;
+export interface RestaurantServiceController {
+  createRestaurant(
+    request: CreateRestaurantRequest,
+  ): Promise<RestaurantResponse> | Observable<RestaurantResponse> | RestaurantResponse;
+
+  getRestaurant(
+    request: RestaurantId,
+  ): Promise<RestaurantResponse> | Observable<RestaurantResponse> | RestaurantResponse;
 
   getAllRestaurants(request: Empty): Promise<RestaurantList> | Observable<RestaurantList> | RestaurantList;
 
-  updateRestaurant(request: UpdateRestaurantRequest): Promise<Restaurant> | Observable<Restaurant> | Restaurant;
+  updateRestaurant(
+    request: UpdateRestaurantRequest,
+  ): Promise<RestaurantResponse> | Observable<RestaurantResponse> | RestaurantResponse;
 
-  deleteRestaurant(request: RestaurantId): void;
+  deleteRestaurant(request: RestaurantId): Promise<Empty> | Observable<Empty> | Empty;
 
-  getRestaurantByName(request: NameRequest): Promise<Restaurant> | Observable<Restaurant> | Restaurant;
+  getRestaurantByName(
+    request: NameRequest,
+  ): Promise<RestaurantResponse> | Observable<RestaurantResponse> | RestaurantResponse;
 
   getRestaurantsByCuisine(
     request: CuisineRequest,
@@ -165,13 +173,15 @@ export interface RestaurantServiceController {
     request: UpdateIsOpenRequest,
   ): Promise<RestaurantResponse> | Observable<RestaurantResponse> | RestaurantResponse;
 
-  getRestaurantsByRating(request: RatingRequest): Promise<RestaurantList> | Observable<RestaurantList> | RestaurantList;
-
   getRestaurantsByLocation(
     request: LocationRequest,
   ): Promise<RestaurantList> | Observable<RestaurantList> | RestaurantList;
 
   getAllRestaurantsWithFilters(request: Empty): Promise<RestaurantList> | Observable<RestaurantList> | RestaurantList;
+
+  updateRating(request: RatingIncrease): Promise<Empty> | Observable<Empty> | Empty;
+
+  decreaseRating(request: RestaurantId): Promise<Empty> | Observable<Empty> | Empty;
 }
 
 export function RestaurantServiceControllerMethods() {
@@ -187,9 +197,10 @@ export function RestaurantServiceControllerMethods() {
       "getRestaurantsByUserId",
       "updateIsVerified",
       "updateIsOpen",
-      "getRestaurantsByRating",
       "getRestaurantsByLocation",
       "getAllRestaurantsWithFilters",
+      "updateRating",
+      "decreaseRating",
     ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);

@@ -1,34 +1,35 @@
 syntax = "proto3";
-
 package restaurant;
 
-import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
-
+//rpc list
 service RestaurantService {
-  rpc CreateRestaurant(CreateRestaurantRequest) returns (Restaurant);
-  rpc GetRestaurant(RestaurantId) returns (Restaurant);
-  rpc GetAllRestaurants(google.protobuf.Empty) returns (RestaurantList);
-  rpc UpdateRestaurant(UpdateRestaurantRequest) returns (Restaurant);
-  rpc DeleteRestaurant(RestaurantId) returns (google.protobuf.Empty);
-  rpc GetRestaurantByName(NameRequest) returns (Restaurant);
+  rpc CreateRestaurant(CreateRestaurantRequest) returns (RestaurantResponse);
+  rpc GetRestaurant(RestaurantId) returns (RestaurantResponse);
+  rpc GetAllRestaurants(Empty) returns (RestaurantList);
+  rpc UpdateRestaurant(UpdateRestaurantRequest) returns (RestaurantResponse);
+  rpc DeleteRestaurant(RestaurantId) returns (Empty);
+  rpc GetRestaurantByName(NameRequest) returns (RestaurantResponse);
   rpc GetRestaurantsByCuisine(CuisineRequest) returns (RestaurantList);
   rpc GetRestaurantsByUserId(UserIdRequest) returns (RestaurantList);
   rpc UpdateIsVerified(UpdateIsVerifiedRequest) returns (RestaurantResponse);
   rpc UpdateIsOpen(UpdateIsOpenRequest) returns (RestaurantResponse);
-  rpc GetRestaurantsByRating(RatingRequest) returns (RestaurantList);
   rpc GetRestaurantsByLocation(LocationRequest) returns (RestaurantList);
-  rpc GetAllRestaurantsWithFilters(google.protobuf.Empty) returns (RestaurantList);
-
+  rpc GetAllRestaurantsWithFilters(Empty) returns (RestaurantList);
+  rpc UpdateRating(RatingIncrease) returns (Empty);
+  rpc DecreaseRating(RestaurantId) returns (Empty);
 }
 
+//empty message 
+message Empty {}
+
 // Common Messages
-message RestaurantId {
+
+message RatingIncrease{
   string restaurantId = 1;
 }
 
-message RestaurantResponse {
-  Restaurant restaurant = 1;
+message RestaurantId {
+  string restaurantId = 1;
 }
 
 message NameRequest {
@@ -43,10 +44,6 @@ message UserIdRequest {
   string userId = 1;
 }
 
-message RatingRequest {
-  int32 rating = 1;
-}
-
 message Coordinates {
   double longitude = 1;
   double latitude = 2;
@@ -55,11 +52,25 @@ message Coordinates {
 message LocationRequest {
   double latitude = 1;
   double longitude = 2;
-  double radius = 3; // in kilometers
+  double radius = 3;
+}
+
+message RestaurantList {
+  repeated RestaurantResponse restaurants = 1;
+}
+
+message UpdateIsVerifiedRequest {
+  string restaurantId = 1;
+  bool isVerified = 2;
+}
+
+message UpdateIsOpenRequest {
+  string restaurantId = 1;
+  bool isOpen = 2;
 }
 
 // Restaurant Data
-message Restaurant {
+message RestaurantResponse {
   string restaurantId = 1;
   string userId = 2;
   string name = 3;
@@ -73,8 +84,6 @@ message Restaurant {
   int32 numberOfRatings = 11;
   bool isOpen = 12;
   bool isVerified = 13;
-  google.protobuf.Timestamp createdAt = 14;
-  google.protobuf.Timestamp updatedAt = 15;
 }
 
 message CreateRestaurantRequest {
@@ -101,18 +110,4 @@ message UpdateRestaurantRequest {
   string imageReference = 9;
   bool isOpen = 10;
   bool isVerified = 11;
-}
-
-message RestaurantList {
-  repeated Restaurant restaurants = 1;
-}
-
-message UpdateIsVerifiedRequest {
-  string restaurantId = 1;
-  bool isVerified = 2;
-}
-
-message UpdateIsOpenRequest {
-  string restaurantId = 1;
-  bool isOpen = 2;
 }

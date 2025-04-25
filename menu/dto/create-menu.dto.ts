@@ -2,7 +2,6 @@ import {
   IsString,
   IsNotEmpty,
   IsNumber,
-  IsBoolean,
   IsPositive,
   IsUrl,
 } from 'class-validator';
@@ -27,7 +26,4 @@ export class CreateMenuDto {
   @IsString()
   @IsUrl()
   imageUrl: string;
-
-  @IsBoolean()
-  available: boolean;
 }

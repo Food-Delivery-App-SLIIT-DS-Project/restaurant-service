@@ -31,7 +31,7 @@ export class MenuService {
       throw new NotFoundException('Restaurant not found');
     }
 
-    const menuId = 'menueI_' + nanoid(10);
+    const menuId = 'menue' + nanoid(10);
     const createdMenu = new this.menuModel({ ...dto, menuId });
     return createdMenu.save();
   }

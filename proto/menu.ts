@@ -7,22 +7,24 @@
 /* eslint-disable */
 import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
 import { Observable } from "rxjs";
-import { Empty } from "../google/protobuf/empty";
-import { Timestamp } from "../google/protobuf/timestamp";
 
 export const protobufPackage = "menu";
 
+/** empty message */
+export interface Empty {
+}
+
+export interface RestaurantId {
+  restaurantId: string;
+}
+
 export interface UpdateMenuStatusRequest {
-  id: string;
+  menuId: string;
   available: boolean;
 }
 
-export interface Id {
-  id: string;
-}
-
-export interface RestaurantIdRequest {
-  restaurantId: string;
+export interface MenuId {
+  menuId: string;
 }
 
 export interface NameRequest {
@@ -30,7 +32,6 @@ export interface NameRequest {
 }
 
 export interface Menu {
-  id: string;
   menuId: string;
   restaurantId: string;
   name: string;
@@ -38,8 +39,6 @@ export interface Menu {
   price: number;
   imageUrl: string;
   available: boolean;
-  createdAt: Timestamp | undefined;
-  updatedAt: Timestamp | undefined;
 }
 
 export interface CreateMenuRequest {
@@ -52,7 +51,7 @@ export interface CreateMenuRequest {
 }
 
 export interface UpdateMenuRequest {
-  id: string;
+  menuId: string;
   name: string;
   description: string;
   price: number;
@@ -69,9 +68,9 @@ export const MENU_PACKAGE_NAME = "menu";
 export interface MenuServiceClient {
   createMenu(request: CreateMenuRequest): Observable<Menu>;
 
-  getMenuById(request: Id): Observable<Menu>;
+  getMenuById(request: MenuId): Observable<Menu>;
 
-  getMenusByRestaurantId(request: RestaurantIdRequest): Observable<MenuList>;
+  getMenusByRestaurantId(request: RestaurantId): Observable<MenuList>;
 
   getMenusByName(request: NameRequest): Observable<MenuList>;
 
@@ -79,7 +78,7 @@ export interface MenuServiceClient {
 
   updateMenuStatus(request: UpdateMenuStatusRequest): Observable<Menu>;
 
-  deleteMenu(request: Id): Observable<Empty>;
+  deleteMenu(request: MenuId): Observable<Empty>;
 
   getAllMenus(request: Empty): Observable<MenuList>;
 
@@ -89,9 +88,9 @@ export interface MenuServiceClient {
 export interface MenuServiceController {
   createMenu(request: CreateMenuRequest): Promise<Menu> | Observable<Menu> | Menu;
 
-  getMenuById(request: Id): Promise<Menu> | Observable<Menu> | Menu;
+  getMenuById(request: MenuId): Promise<Menu> | Observable<Menu> | Menu;
 
-  getMenusByRestaurantId(request: RestaurantIdRequest): Promise<MenuList> | Observable<MenuList> | MenuList;
+  getMenusByRestaurantId(request: RestaurantId): Promise<MenuList> | Observable<MenuList> | MenuList;
 
   getMenusByName(request: NameRequest): Promise<MenuList> | Observable<MenuList> | MenuList;
 
@@ -99,7 +98,7 @@ export interface MenuServiceController {
 
   updateMenuStatus(request: UpdateMenuStatusRequest): Promise<Menu> | Observable<Menu> | Menu;
 
-  deleteMenu(request: Id): void;
+  deleteMenu(request: MenuId): Promise<Empty> | Observable<Empty> | Empty;
 
   getAllMenus(request: Empty): Promise<MenuList> | Observable<MenuList> | MenuList;
 
