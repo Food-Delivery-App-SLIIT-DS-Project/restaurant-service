@@ -1,39 +1,121 @@
-syntax="proto3";
+syntax = "proto3";
 package restaurant;
 
-service RestaurantService{
-    rpc CreateRestaurant(CreateRestaurantDto) returns (Restaurant){}
-    rpc FindAllRestaurants(Empty) returns (RestaurantList){}
-    rpc FindRestaurantById(FineOneRestaurantDto) returns (Restaurant){}
-    rpc UpdateRestaurant(UpdateRestaurantDto) returns (Restaurant){}
-    rpc DeleteRestaurant(FineOneRestaurantDto) returns (Restaurant){}
+//rpc list
+service RestaurantService {
+  rpc CreateRestaurant(CreateRestaurantRequest) returns (RestaurantResponse);
+  rpc GetRestaurant(RestaurantId) returns (RestaurantResponse);
+  rpc GetAllRestaurants(Empty) returns (RestaurantList);
+  rpc UpdateRestaurant(UpdateRestaurantRequest) returns (RestaurantResponse);
+  rpc DeleteRestaurant(RestaurantId) returns (Empty);
+  rpc GetRestaurantByName(NameRequest) returns (RestaurantResponse);
+  rpc GetRestaurantsByCuisine(CuisineRequest) returns (RestaurantList);
+  rpc GetRestaurantsByUserId(UserIdRequest) returns (RestaurantList);
+  rpc UpdateIsVerified(UpdateIsVerifiedRequest) returns (RestaurantResponse);
+  rpc UpdateIsOpen(UpdateIsOpenRequest) returns (RestaurantResponse);
+  rpc GetRestaurantsByLocation(LocationRequest) returns (RestaurantList);
+  rpc GetAllRestaurantsWithFilters(Empty) returns (RestaurantList);
+  rpc UpdateRating(RatingIncrease) returns (Empty);
+  rpc DecreaseRating(RestaurantId) returns (Empty);
+  rpc RestaurantOrderAcceptOrReject(OrderAcceptedDto) returns (OrderAcceptedResponse);
 }
+
+message OrderAcceptedDto {
+  string orderId = 1;
+  string restaurantId = 2;
+}
+message OrderAcceptedResponse {
+  bool status = 4; // e.g., "true", "false"
+}
+//empty message 
 message Empty {}
-message RestaurantList{
-    repeated Restaurant restaurants = 1;
+
+// Common Messages
+
+message RatingIncrease{
+  string restaurantId = 1;
 }
-message FineOneRestaurantDto{
-    string id = 1;
+
+message RestaurantId {
+  string restaurantId = 1;
 }
-message CreateRestaurantDto{
-    string id = 1;
-    string name = 2;
-    string address = 3;
-    string phone = 4;
+
+message NameRequest {
+  string name = 1;
 }
-message UpdateRestaurantDto{
-    string id = 1;
-    string name = 2;
-    string address = 3;
-    string phone = 4;
+
+message CuisineRequest {
+  string cuisine = 1;
 }
-message Restaurant{
-    string id = 1;
-    string name = 2;
-    string address = 3;
-    string phone = 4;
+
+message UserIdRequest {
+  string userId = 1;
 }
-message RestaurantStatus{
-    string id = 1;
-    string status = 2;
+
+message Coordinates {
+  double longitude = 1;
+  double latitude = 2;
+}
+
+message LocationRequest {
+  double latitude = 1;
+  double longitude = 2;
+  double radius = 3;
+}
+
+message RestaurantList {
+  repeated RestaurantResponse restaurants = 1;
+}
+
+message UpdateIsVerifiedRequest {
+  string restaurantId = 1;
+  bool isVerified = 2;
+}
+
+message UpdateIsOpenRequest {
+  string restaurantId = 1;
+  bool isOpen = 2;
+}
+
+// Restaurant Data
+message RestaurantResponse {
+  string restaurantId = 1;
+  string userId = 2;
+  string name = 3;
+  string address = 4;
+  Coordinates location = 5;
+  string phone = 6;
+  string cuisineType = 7;
+  string description = 8;
+  string openHours = 9;
+  string imageReference = 10;
+  int32 numberOfRatings = 11;
+  bool isOpen = 12;
+  bool isVerified = 13;
+}
+
+message CreateRestaurantRequest {
+  string userId = 1;
+  string name = 2;
+  string address = 3;
+  Coordinates location = 4;
+  string phone = 5;
+  string cuisineType = 6;
+  string description = 7;
+  string openHours = 8;
+  string imageReference = 9;
+}
+
+message UpdateRestaurantRequest {
+  string restaurantId = 1;
+  string name = 2;
+  string address = 3;
+  Coordinates location = 4;
+  string phone = 5;
+  string cuisineType = 6;
+  string description = 7;
+  string openHours = 8;
+  string imageReference = 9;
+  bool isOpen = 10;
+  bool isVerified = 11;
 }
