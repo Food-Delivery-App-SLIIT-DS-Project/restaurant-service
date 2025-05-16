@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { MongooseModule } from '@nestjs/mongoose';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
@@ -12,7 +13,6 @@ import { MenuModule } from './menu/menu.module';
     MongooseModule.forRoot(
       process.env.MONGO_URI || 'mongodb://localhost:27017/default-db',
     ),
-    RestaurantModule,
     KafkaModule,
     MenuModule,
   ],

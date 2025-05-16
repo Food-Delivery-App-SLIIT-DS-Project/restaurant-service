@@ -6,12 +6,13 @@ import {
   Inject,
   Injectable,
   NotFoundException,
+  OnModuleInit,
 } from '@nestjs/common';
 import { v4 as uuid } from 'uuid';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Restaurant, RestaurantDocument } from '../schemas/restaurant.schema';
-import { ClientKafka } from '@nestjs/microservices';
+import { ClientGrpc, ClientKafka } from '@nestjs/microservices';
 import {
   CreateRestaurantRequest,
   CuisineRequest,
@@ -26,23 +27,34 @@ import {
   UpdateRestaurantRequest,
   UserIdRequest,
 } from 'src/types/restaurant';
+import { ORDER_SERVICE_NAME, OrderServiceClient } from 'src/types/order';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
-export class RestaurantService {
+export class RestaurantService implements OnModuleInit {
+  private orderServiceClient: OrderServiceClient; 
+
   constructor(
     @InjectModel(Restaurant.name)
     private restaurantModel: Model<RestaurantDocument>,
     @Inject('KAFKA_SERVICE_RESTAURANT')
     private readonly kafkaClient: ClientKafka,
+    @Inject(ORDER_SERVICE_NAME)
+    private client: ClientGrpc,
   ) {}
+
   async onModuleInit() {
+    console.log('onModuleInit--');
     await this.kafkaClient.connect();
+    this.orderServiceClient = this.client.getService<OrderServiceClient>(ORDER_SERVICE_NAME);
   }
+
+
   // kafka function --- restaurant accept order  event producer-------------
   async restaurantOrderAcceptOrReject(
     data: any,
   ): Promise<OrderAcceptedResponse> {
-    console.log(data)
+    console.log(data);
     const { restaurantId, orderId } = data;
     if (!restaurantId || !orderId) {
       throw new BadRequestException('restaurantId and orderId are required');
@@ -52,10 +64,14 @@ export class RestaurantService {
     if (!restaurant) {
       throw new NotFoundException('Restaurant not found');
     }
+    // get order details from order Id
+    const order = await firstValueFrom(this.orderServiceClient.findOneOrder({ orderId }));
+
+
     const location = restaurant.location;
     const orderDetails = {
       restaurantId,
-      orderId,
+      order,
       location,
     };
     // Emit the event to Kafka
