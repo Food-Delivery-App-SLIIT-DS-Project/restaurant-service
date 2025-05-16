@@ -48,6 +48,7 @@ export class RestaurantController implements RestaurantServiceController {
   }
 
   getAllRestaurants() {
+    console.log('getAllRestaurants controller--');
     return this.wrap(() => this.restaurantService.getAllRestaurants());
   }
 
