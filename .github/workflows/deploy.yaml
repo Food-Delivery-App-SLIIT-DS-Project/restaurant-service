@@ -25,15 +25,30 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Create restaurant-service-deployment.yaml
+      - name: Create namespace.yaml
+        run: |
+          cat <<EOF > namespace.yaml
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: restaurant-service
+          EOF
+
+      - name: Write restaurant-service-secret.yaml from GitHub Secret
+        run: |
+          echo "${{ secrets.RESTAURANT_SERVICE_SECRET_YAML_BASE64 }}" | base64 -d > restaurant-service-secret.yaml
+
+      - name: Create restaurant-service.yaml (Deployment + Service)
         shell: bash
         run: |
-          cat <<EOF > restaurant-service-deployment.yaml
+          cat <<EOF > restaurant-service.yaml
           apiVersion: apps/v1
           kind: Deployment
           metadata:
             name: restaurant-service
             namespace: restaurant-service
+            labels:
+              app: restaurant-service
           spec:
             replicas: 1
             selector:
@@ -45,24 +60,35 @@ jobs:
                   app: restaurant-service
               spec:
                 containers:
-                - name: restaurant-service
-                  image: ${IMAGE_NAME}:${IMAGE_TAG}
-                  ports:
-                  - containerPort: 8084
-                  envFrom:
-                  - secretRef:
-                      name: restaurant-service-secret
+                  - name: restaurant-service
+                    image: ${IMAGE_NAME}:${IMAGE_TAG}
+                    ports:
+                      - containerPort: 50057
+                    envFrom:
+                      - secretRef:
+                          name: restaurant-service-secret
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: restaurant-service
+            namespace: restaurant-service
+          spec:
+            selector:
+              app: restaurant-service
+            ports:
+              - protocol: TCP
+                port: 50057
+                targetPort: 50057
+            type: ClusterIP
           EOF
 
-      - name: Write restaurant-service-secret.yaml from GitHub Secret
-        run: |
-          echo "${{ secrets.RESTAURANT_SERVICE_SECRET_YAML_BASE64 }}" | base64 -d > restaurant-service-secret.yaml
-
-      - name: Check if files exist
+      - name: Check generated files
         run: |
           ls -la
-          echo "restaurant-service-deployment.yaml:" && cat restaurant-service-deployment.yaml
-          echo "restaurant-service-secret.yaml:" && cat restaurant-service-secret.yaml || echo "Missing secret file"
+          echo "--- namespace.yaml ---" && cat namespace.yaml
+          echo "--- restaurant-service-secret.yaml ---" && cat restaurant-service-secret.yaml
+          echo "--- restaurant-service.yaml ---" && cat restaurant-service.yaml
 
       - name: Build and push Docker image
         run: |
@@ -72,7 +98,7 @@ jobs:
       - name: Install OpenSSH client
         run: sudo apt-get update && sudo apt-get install -y openssh-client
 
-      - name: Set up SSH key (RSA)
+      - name: Set up SSH key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
@@ -85,9 +111,10 @@ jobs:
       - name: Deploy to EC2
         run: |
           ssh ubuntu@${{ secrets.EC2_HOST }} "mkdir -p ~/deploy/restaurant-service"
-          scp restaurant-service-*.yaml ubuntu@${{ secrets.EC2_HOST }}:~/deploy/restaurant-service/
+          scp namespace.yaml restaurant-service-secret.yaml restaurant-service.yaml ubuntu@${{ secrets.EC2_HOST }}:~/deploy/restaurant-service/
           ssh ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
             cd ~/deploy/restaurant-service
+            sudo kubectl apply -f namespace.yaml
             sudo kubectl apply -f restaurant-service-secret.yaml
-            sudo kubectl apply -f restaurant-service-deployment.yaml
+            sudo kubectl apply -f restaurant-service.yaml
           EOF
