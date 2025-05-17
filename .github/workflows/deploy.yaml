@@ -33,7 +33,7 @@ jobs:
           kind: Deployment
           metadata:
             name: restaurant-service
-            namespace: default
+            namespace: restaurant-service
           spec:
             replicas: 1
             selector:
